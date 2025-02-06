@@ -27,8 +27,3 @@ proto/*.pb.gw.go
 # OS-generated files
 .DS_Store
 Thumbs.db
-
-frontend/
-services/
-package-lock.json
-.github/
