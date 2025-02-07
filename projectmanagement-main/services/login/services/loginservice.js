@@ -15,7 +15,7 @@ class LoginService {
         success: false,
         timestamp: new Date().toISOString()
       });
-      throw new Error('User not found');
+      throw new Error('User not found!');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -27,7 +27,7 @@ class LoginService {
         success: false,
         timestamp: new Date().toISOString()
       });
-      throw new Error('Invalid password');
+      throw new Error('Invalid password!');
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });

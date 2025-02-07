@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD AWS ECS
 
 on:
   push:
@@ -10,76 +10,43 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      GCP_REGION: ${{ secrets.GCP_REGION }}
+      AWS_REGION: "us-east-1"  # Cambia según la región de AWS
+      ECR_REPOSITORY: "projectmanagement-repo"
+      ECS_CLUSTER: "projectmanagement-cluster"
+      ECS_SERVICE_USERS: "userservice"
+      ECS_SERVICE_LOGIN: "loginservice"
+      ECS_SERVICE_AUDIT: "auditservice"
+      ECS_SERVICE_PROJECT: "projectservice"
+      ECS_SERVICE_COMMENT: "commentservice"
+      ECS_SERVICE_FRONTEND: "frontend"
 
     steps:
-    - name: Checkout code
+    - name: 📥 Checkout código
       uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
+    - name: 🔧 Configurar AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
       with:
-        node-version: '14'
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-    - name: Set up gcloud CLI and Docker
+    - name: 🔐 Login en Amazon ECR
       run: |
-        echo "$GCP_SA_KEY" > "${HOME}/gcloud-key.json"
-        gcloud auth activate-service-account --key-file="${HOME}/gcloud-key.json"
-        gcloud config set project $GCP_PROJECT_ID
-        gcloud auth configure-docker
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com
 
-    - name: Build and push userservice Docker image to Google Container Registry
+    - name: 🛠️ Construir y subir imágenes Docker a AWS ECR
       run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/userservice:latest ./services/userservice
-        docker push gcr.io/$GCP_PROJECT_ID/userservice:latest
+        for service in userservice loginservice auditservice projectservice commentservice frontend; do
+          IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY-$service:latest"
+          echo "🚀 Construyendo y subiendo $service"
+          docker build -t $IMAGE_URI ./services/$service
+          docker push $IMAGE_URI
+        done
 
-    - name: Deploy userservice to Cloud Run
+    - name: 🚀 Actualizar AWS ECS Fargate
       run: |
-        gcloud run deploy userservice --image gcr.io/$GCP_PROJECT_ID/userservice:latest --platform managed --region $GCP_REGION --allow-unauthenticated
-
-    - name: Build and push loginservice Docker image to Google Container Registry
-      run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/loginservice:latest ./services/login
-        docker push gcr.io/$GCP_PROJECT_ID/loginservice:latest
-
-    - name: Deploy loginservice to Cloud Run
-      run: |
-        gcloud run deploy loginservice --image gcr.io/$GCP_PROJECT_ID/loginservice:latest --platform managed --region $GCP_REGION --allow-unauthenticated
-
-    - name: Build and push auditservice Docker image to Google Container Registry
-      run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/auditservice:latest ./services/auditservice
-        docker push gcr.io/$GCP_PROJECT_ID/auditservice:latest
-
-    - name: Deploy auditservice to Cloud Run
-      run: |
-        gcloud run deploy auditservice --image gcr.io/$GCP_PROJECT_ID/auditservice:latest --platform managed --region $GCP_REGION --allow-unauthenticated
-
-    - name: Build and push projectservice Docker image to Google Container Registry
-      run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/projectservice:latest ./services/projectservice
-        docker push gcr.io/$GCP_PROJECT_ID/projectservice:latest
-
-    - name: Deploy projectservice to Cloud Run
-      run: |
-        gcloud run deploy projectservice --image gcr.io/$GCP_PROJECT_ID/projectservice:latest --platform managed --region $GCP_REGION --allow-unauthenticated
-
-    - name: Build and push commentservice Docker image to Google Container Registry
-      run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/commentservice:latest ./services/commentservice
-        docker push gcr.io/$GCP_PROJECT_ID/commentservice:latest
-
-    - name: Deploy commentservice to Cloud Run
-      run: |
-        gcloud run deploy commentservice --image gcr.io/$GCP_PROJECT_ID/commentservice:latest --platform managed --region $GCP_REGION --allow-unauthenticated
-
-    - name: Build and push frontend Docker image to Google Container Registry
-      run: |
-        docker build -t gcr.io/$GCP_PROJECT_ID/frontend:latest ./frontend
-        docker push gcr.io/$GCP_PROJECT_ID/frontend:latest
-
-    - name: Deploy frontend to Cloud Run
-      run: |
-        gcloud run deploy frontend --image gcr.io/$GCP_PROJECT_ID/frontend:latest --platform managed --region $GCP_REGION --allow-unauthenticated
+        for service in $ECS_SERVICE_USERS $ECS_SERVICE_LOGIN $ECS_SERVICE_AUDIT $ECS_SERVICE_PROJECT $ECS_SERVICE_COMMENT $ECS_SERVICE_FRONTEND; do
+          echo "♻️  Actualizando ECS Service: $service"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $service --force-new-deployment
+        done
