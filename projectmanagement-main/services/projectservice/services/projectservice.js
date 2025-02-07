@@ -22,7 +22,7 @@ const ProjectService = {
   getProjectById: async (id) => {
     try {
       const project = await Project.findByPk(id);
-      if (!project) throw new Error('Project not found.');
+      if (!project) throw new Error('Project not found');
       return project;
     } catch (error) {
       throw new Error(error.message);
