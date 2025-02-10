@@ -15,7 +15,7 @@
 [![GraphQL][GraphQL]][GraphQL-url]
 [![MongoDB][MongoDB]][MongoDB-url]
 [![MySQL][MySQL]][MySQL-url]
-[![Google Cloud Pub/Sub][GoogleCloudPubSub]][GoogleCloudPubSub-url]
+[![AWS SNS/SQS][AWS-SNS-SQS]][AWS-SNS-SQS-url]
 [![JWT][JWT]][JWT-url]
 
 </div>
@@ -63,7 +63,7 @@ Below is an example of how you can instruct your audience on installing and sett
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/antichrist667/sales.git
+   git clone https://github.com/AngeloDUF/projectmanagement26
    ```
 2. Install NPM packages
    ```sh
@@ -170,7 +170,7 @@ Below is an example of how you can instruct your audience on installing and sett
 - **GraphQL:** A data query language and runtime for executing queries by using a type system you define for your data.
 - **MongoDB:** A NoSQL database used for storing JSON-like documents with optional schemas.
 - **MySQL:** A relational database management system based on SQL – Structured Query Language.
-- **Google Cloud Pub/Sub:** A messaging service for event-driven systems and analytics.
+- **AWS SNS/SQS:** Amazon Simple Notification Service (SNS) and Simple Queue Service (SQS) for event-driven messaging and queue-based workflows.
 - **JWT (JSON Web Token):** A compact, URL-safe means of representing claims to be transferred between two parties.
 
 ## 🏁 Setup Instructions <a name = "setup-instructions"></a>
@@ -203,7 +203,7 @@ This project is licensed under the MIT License.
 [MongoDB-url]: https://www.mongodb.com/
 [MySQL]: https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white
 [MySQL-url]: https://www.mysql.com/
-[GoogleCloudPubSub]: https://img.shields.io/badge/Google_Cloud_Pub/Sub-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white
-[GoogleCloudPubSub-url]: https://cloud.google.com/pubsub
+[AWS-SNS-SQS]: https://img.shields.io/badge/AWS_SNS%2FSQS-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white
+[AWS-SNS-SQS-url]: https://aws.amazon.com/sns-sqs/
 [JWT]: https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white
 [JWT-url]: https://jwt.io/
