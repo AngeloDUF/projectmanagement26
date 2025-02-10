@@ -176,7 +176,7 @@ Below is an example of how you can instruct your audience on installing and sett
 ## 🏁 Setup Instructions <a name = "setup-instructions"></a>
 1. Clone the repository:
    ```bash
-   git clone https://github.com/antichrist667/projectmanagement.git
+   git clone https://github.com/AngeloDUF/projectmanagement26
    ```
 
 ## 🎈 Usage <a name = "usage"></a>
