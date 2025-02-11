@@ -1,0 +1,58 @@
+name: CI/CD AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: "us-east-1"  # Cambia según la región de AWS
+      ECR_REPOSITORY: "projectmanagement-repo"
+      ECS_CLUSTER: "projectmanagement-cluster"
+      ECS_SERVICE_USERS: "userservice"
+      ECS_SERVICE_LOGIN: "loginservice"
+      ECS_SERVICE_AUDIT: "auditservice"
+      ECS_SERVICE_PROJECT: "projectservice"
+      ECS_SERVICE_COMMENT: "commentservice"
+      ECS_SERVICE_FRONTEND: "frontend"
+
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v2
+
+    - name: 🔧 Configurar AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: 🔐 Login en Amazon ECR
+      run: |
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com
+
+    - name: 🛠️ Construir y subir imágenes Docker a AWS ECR
+      run: |
+        for service in userservice loginservice auditservice projectservice commentservice frontend; do
+          IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY-$service:latest"
+          echo "🚀 Construyendo y subiendo $service"
+          
+          if [ -f ./services/$service/Dockerfile ]; then
+            docker build -t $IMAGE_URI ./services/$service
+            docker push $IMAGE_URI
+          else
+            echo "❌ Dockerfile no encontrado para $service. Saltando..."
+          fi
+        done
+
+
+    - name: 🚀 Actualizar AWS ECS Fargate
+      run: |
+        for service in $ECS_SERVICE_USERS $ECS_SERVICE_LOGIN $ECS_SERVICE_AUDIT $ECS_SERVICE_PROJECT $ECS_SERVICE_COMMENT $ECS_SERVICE_FRONTEND; do
+          echo "♻️  Actualizando ECS Service: $service"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $service --force-new-deployment
+        done
