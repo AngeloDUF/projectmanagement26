@@ -40,9 +40,15 @@ jobs:
         for service in userservice loginservice auditservice projectservice commentservice frontend; do
           IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY-$service:latest"
           echo "🚀 Construyendo y subiendo $service"
-          docker build -t $IMAGE_URI ./services/$service
-          docker push $IMAGE_URI
+          
+          if [ -f ./services/$service/Dockerfile ]; then
+            docker build -t $IMAGE_URI ./services/$service
+            docker push $IMAGE_URI
+          else
+            echo "❌ Dockerfile no encontrado para $service. Saltando..."
+          fi
         done
+
 
     - name: 🚀 Actualizar AWS ECS Fargate
       run: |

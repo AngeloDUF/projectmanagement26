@@ -1,8 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../db/models/usermodel');
-const { PubSub } = require('@google-cloud/pubsub');
-const pubSubClient = new PubSub();
 
 class LoginService {
   async loginUser(email, password) {
